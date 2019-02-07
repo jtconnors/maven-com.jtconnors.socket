@@ -11,7 +11,7 @@
         <version>9</version>
     </parent>
     
-    <groupId>com.jtconnors</groupId>  
+    <groupId>com.jtconnors.socket</groupId>  
     <artifactId>com.jtconnors.socket</artifactId>
     <version>11.0-SNAPSHOT</version>
     
@@ -111,4 +111,5 @@
             <email>maven@jtconnors.com</email>
         </developer>
     </developers>
+    <name>maven-com.jtconnors.socket</name>
 </project>
