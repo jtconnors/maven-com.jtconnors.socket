@@ -11,12 +11,12 @@
         <version>9</version>
     </parent>
     
-    <groupId>com.jtconnors.socket</groupId>  
+    <groupId>com.jtconnors</groupId>  
     <artifactId>com.jtconnors.socket</artifactId>
-    <version>11.0.1</version>
+    <version>1.0.3</version>
     
-    <name>maven-com.jtconnors.socket</name>
-    <description>Java socket utility classes used as an example on how
+    <name>Java Socket Utility Classes</name>
+    <description>Java socket utility classes.  Simple example how
         to set up pushing components to the Central Repository</description>
     <url>https://github.com/jtconnors/maven-com.jtconnors.socket</url>
     
@@ -74,7 +74,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-gpg-plugin</artifactId>
-                <version>1.5</version>
+                <version>1.6</version>
                 <executions>
                     <execution>
                         <id>sign-artifacts</id>
