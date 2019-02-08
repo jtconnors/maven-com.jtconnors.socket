@@ -13,7 +13,13 @@
     
     <groupId>com.jtconnors.socket</groupId>  
     <artifactId>com.jtconnors.socket</artifactId>
-    <version>11.0-SNAPSHOT</version>
+    <version>11.0.1</version>
+    
+    <name>maven-com.jtconnors.socket</name>
+    <description>Java socket utility classes used as an example on how
+        to set up pushing components to the Central Repository</description>
+    <url>https://github.com/jtconnors/maven-com.jtconnors.socket</url>
+    
     
     <packaging>jar</packaging>
     
@@ -50,6 +56,31 @@
                         <id>attach-javadocs</id>
                         <goals>
                             <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.sonatype.plugins</groupId>
+                <artifactId>nexus-staging-maven-plugin</artifactId>
+                <version>1.6.8</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <serverId>ossrh</serverId>
+                    <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+                    <autoReleaseAfterClose>true</autoReleaseAfterClose>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-gpg-plugin</artifactId>
+                <version>1.5</version>
+                <executions>
+                    <execution>
+                        <id>sign-artifacts</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>sign</goal>
                         </goals>
                     </execution>
                 </executions>
@@ -99,17 +130,30 @@
             </comments>
         </license>
     </licenses>
-
-    <organization>
-        <name>jtconnors.com</name>
-        <url> https://jtconnors.com:8445</url>
-    </organization>
+    
+    <distributionManagement>
+        <snapshotRepository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+        <repository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+    </distributionManagement>
+    
+    <scm>
+        <connection>scm:git:git://github.com/jtconnors/maven-com.jtconnors.socket.git</connection>
+        <developerConnection>scm:git:ssh://github.com:jtconnors/maven-com.jtconnors.socket.git</developerConnection>
+        <url>https://github.com/jtconnors/maven-com.jtconnors.socket</url>
+    </scm>
 
     <developers>
         <developer>
             <name>Jim Connors</name>
             <email>maven@jtconnors.com</email>
+            <organization>jtconnors.com</organization>
+            <organizationUrl>https://jtconnors.com:8445</organizationUrl>
         </developer>
     </developers>
-    <name>maven-com.jtconnors.socket</name>
 </project>
