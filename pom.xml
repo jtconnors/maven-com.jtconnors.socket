@@ -15,7 +15,7 @@
     <artifactId>com.jtconnors.socket</artifactId>
     <version>11.0.3</version>
     
-    <name>Java Socket Utility Classes</name>
+    <name>maven-com.jtconnors.socket</name>
     <description>Java socket utility classes.  Simple example how
         to set up pushing components to the Central Repository</description>
     <url>https://github.com/jtconnors/maven-com.jtconnors.socket</url>
