@@ -13,7 +13,7 @@
     
     <groupId>com.jtconnors</groupId>  
     <artifactId>com.jtconnors.socket</artifactId>
-    <version>1.0.3</version>
+    <version>11.0.3</version>
     
     <name>Java Socket Utility Classes</name>
     <description>Java socket utility classes.  Simple example how
