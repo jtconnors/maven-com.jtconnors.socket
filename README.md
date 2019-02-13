@@ -1,3 +1,5 @@
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.jtconnors/com.jtconnors.socket/badge.svg?style=plastic)](https://maven-badges.herokuapp.com/maven-central/com.jtconnors/com.jtconnors.socket)
+
 # com.jtconnors.socket
 
 Java socket utility classes which facilitate the creation and use of:
