@@ -11,8 +11,8 @@
         <version>9</version>
     </parent>
     
-    <groupId>com.jtconnors.socket</groupId>  
-    <artifactId>com.jtconnors.socket</artifactId>
+    <groupId>io.github.jtconnors</groupId>  
+    <artifactId>socket</artifactId>
     <version>21.0.0</version>
     
     <name>maven-com.jtconnors.socket</name>
