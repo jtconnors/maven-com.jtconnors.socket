@@ -1,6 +1,7 @@
+package com.jtconnors.socket.test;
 
 /*
- * Copyright (c) 2018, Jim Connors
+ * Copyright (c) 2016, Jim Connors
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,7 +31,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.jtconnors.socket.test;
+
 
 import com.jtconnors.socket.MultipleSocketWriter;
 import java.io.BufferedReader;
@@ -41,15 +42,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * This class demonstrates a server socket connection that is capable of sending
- * messages to one or more connected sockets at the same time.
- * <br><br>
- * This class's 
- * {@link com.jtconnors.socket.test.MultipleSocketServerSender#main} method
- * can be executed with one or more of
- * {@link com.jtconnors.socket.test.SocketClientReceiver#main}'s methods to
- * see how this works.
- * <br><br>
  * WARNING: This class is meant for testing outside the JavaFX framework. In
  * JavaFX we must insure that certain work must be done on the main thread, and
  * this class does no such thing.
@@ -96,15 +88,10 @@ public class MultipleSocketServerSender extends MultipleSocketWriter {
     public MultipleSocketServerSender(int listenerPort, int debugFlags) {
         super(listenerPort, debugFlags);
     }
-    /**
-     * This main method will create a MultipleSocketServerSender instance and
-     * will send user-initiated messages to all connected clients until
-     * terminated.
-     * @param args command-line arguments (ignored)
-     */
+    
     public static void main(String[] args) {
         MultipleSocketServerSender m = new MultipleSocketServerSender() ;
-        new Thread (m).start();
+        Thread.ofVirtual().start(m);
         
         String line = "";
         int messageNum = 0;

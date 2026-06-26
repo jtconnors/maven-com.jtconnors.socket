@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, Jim Connors
+ * Copyright (c) 2016, Jim Connors
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,26 +43,12 @@ import java.net.SocketException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/**
- * Provides the framework for simple socket clients or socket servers.
- * <br><br>
- * This class is abstract, implements a separate reader thread, and socket
- * clients and/or socket servers that extend this class must implement the
- * {@link com.jtconnors.socket.SocketListener#onMessage},
- * {@link com.jtconnors.socket.SocketListener#onClosedStatus},
- * {@link com.jtconnors.socket.GenericSocket#initSocketConnection} and
- * {@link com.jtconnors.socket.GenericSocket#closeAdditionalSockets},
- * methods.
- */
 public abstract class GenericSocket extends SocketBase
         implements SocketListener {
     
     private final static Logger LOGGER =
             Logger.getLogger(MethodHandles.lookup().lookupClass().getName());
 
-    /**
-     * Socket used by this implementation
-     */
     protected Socket socketConnection = null;
 
     private int port;
@@ -83,13 +69,15 @@ public abstract class GenericSocket extends SocketBase
              * Background thread to set up and open the input and
              * output data streams.
              */
-            setupThread = new SetupThread();
-            setupThread.start();
+            setupThread = Thread.ofVirtual()
+                    .name("generic-socket-setup-", 0)
+                    .start(this::setupSocket);
             /*
              * Background thread to continuously read from the input stream.
              */
-            socketReaderThread = new SocketReaderThread();
-            socketReaderThread.start();
+            socketReaderThread = Thread.ofVirtual()
+                    .name("generic-socket-reader-", 0)
+                    .start(this::readSocket);
         } catch (Exception e) {
             if (debugFlagIsSet(DebugFlags.instance().DEBUG_EXCEPTIONS)) {
                 StringWriter sw = new StringWriter();
@@ -156,7 +144,7 @@ public abstract class GenericSocket extends SocketBase
      * Socket), the implementation details go here. Initialization up to and
      * including either accept() or connect() take place here.
      *
-     * @throws SocketException when socket errors occur
+     * @throws SocketException
      */
     protected abstract void initSocketConnection() throws SocketException;
 
@@ -221,112 +209,88 @@ public abstract class GenericSocket extends SocketBase
         return port;
     }
     
-    class SetupThread extends Thread {
-
-        @Override
-        public void run() {
-            try {
-                initSocketConnection();
-                if (socketConnection != null && !socketConnection.isClosed()) {
-                    /*
-                     * Get input and output streams
-                     */
-                    input = new BufferedReader(new InputStreamReader(
-                            socketConnection.getInputStream()));
-                    output = new BufferedWriter(new OutputStreamWriter(
-                            socketConnection.getOutputStream()));
-                    output.flush();
-                }
+    private void setupSocket() {
+        try {
+            initSocketConnection();
+            if (socketConnection != null && !socketConnection.isClosed()) {
                 /*
-                 * Notify SocketReaderThread that it can now start.
+                 * Get input and output streams
                  */
-                notifyReady();
-            } catch (IOException e) {
-                if (debugFlagIsSet(DebugFlags.instance().DEBUG_EXCEPTIONS)) {
-                    StringWriter sw = new StringWriter();
-                    e.printStackTrace(new PrintWriter(sw));
-                    LOGGER.log(Level.INFO, sw.toString());
-                }
-                /*
-                 * This will notify the SocketReaderThread that it should exit.
-                 */
-                notifyReady();
+                input = new BufferedReader(new InputStreamReader(
+                        socketConnection.getInputStream()));
+                output = new BufferedWriter(new OutputStreamWriter(
+                        socketConnection.getOutputStream()));
+                output.flush();
             }
+            /*
+             * Notify socket reader that it can now start.
+             */
+            notifyReady();
+        } catch (IOException e) {
+            if (debugFlagIsSet(DebugFlags.instance().DEBUG_EXCEPTIONS)) {
+                StringWriter sw = new StringWriter();
+                e.printStackTrace(new PrintWriter(sw));
+                LOGGER.log(Level.INFO, sw.toString());
+            }
+            /*
+             * This will notify the socket reader that it should exit.
+             */
+            notifyReady();
         }
     }
 
-    class SocketReaderThread extends Thread {
-
-        @Override
-        public void run() {
-            /*
-             * Wait until the socket is set up before beginning to read.
-             */
-            waitForReady();
-            /* 
-             * Now that the readerThread has started, it's safe to inform
-             * the world that the socket is open, if in fact, it is open.
-             * If used in conjunction with JavaFX, use Entry.deferAction()
-             * when implementing this method to force it to run on the main
-             * thread.
-             */
-            if (socketConnection != null && socketConnection.isConnected()) {
-                onClosedStatus(false);
-            }
-            /*
-             * Read from from input stream one line at a time
-             */
-            try {
-                if (input != null) {
-                    String line;
-                    while ((line = input.readLine()) != null) {
-                        if (debugFlagIsSet(DebugFlags.instance().DEBUG_RECV)) {
-                            LOGGER.log(Level.INFO, "recv> {0}", line);
-                        }
-                        /*
-                         * The onMessage() method has to be implemented by
-                         * a sublclass.  If used in conjunction with JavaFX,
-                         * use Entry.deferAction() to force this method to run
-                         * on the main thread.
-                         */
-                        onMessage(line);
+    private void readSocket() {
+        /*
+         * Wait until the socket is set up before beginning to read.
+         */
+        waitForReady();
+        /* 
+         * Now that the reader thread has started, it's safe to inform
+         * the world that the socket is open, if in fact, it is open.
+         * If used in conjunction with JavaFX, use Entry.deferAction()
+         * when implementing this method to force it to run on the main
+         * thread.
+         */
+        if (socketConnection != null && socketConnection.isConnected()) {
+            onClosedStatus(false);
+        }
+        /*
+         * Read from from input stream one line at a time
+         */
+        try {
+            if (input != null) {
+                String line;
+                while ((line = input.readLine()) != null) {
+                    if (debugFlagIsSet(DebugFlags.instance().DEBUG_RECV)) {
+                        LOGGER.log(Level.INFO, "recv> {0}", line);
                     }
+                    /*
+                     * The onMessage() method has to be implemented by
+                     * a sublclass.  If used in conjunction with JavaFX,
+                     * use Entry.deferAction() to force this method to run
+                     * on the main thread.
+                     */
+                    onMessage(line);
                 }
-            } catch (IOException e) {
-                if (debugFlagIsSet(DebugFlags.instance().DEBUG_EXCEPTIONS)) {
-                    LOGGER.severe(ExceptionStackTraceAsString(e));
-                }
-            } finally {
-                close();
             }
+        } catch (IOException e) {
+            if (debugFlagIsSet(DebugFlags.instance().DEBUG_EXCEPTIONS)) {
+                LOGGER.severe(ExceptionStackTraceAsString(e));
+            }
+        } finally {
+            close();
         }
     }
-    
-    /**
-     * Constructor using the following default values:
-     * <ul><li>{@link com.jtconnors.socket.Constants#DEFAULT_PORT}, </li>
-     * <li>{@link com.jtconnors.socket.DebugFlags#DEBUG_NONE}</li></ul>
-     */
+
     public GenericSocket() {
         this(Constants.instance().DEFAULT_PORT,
                 DebugFlags.instance().DEBUG_NONE);
     }
 
-    /**
-     * Constructor using the default 
-     * {@link com.jtconnors.socket.DebugFlags#DEBUG_NONE} value and
-     * user-specified listener port number
-     * @param port the port number to initiate connections
-     */
     public GenericSocket(int port) {
         this(port, DebugFlags.instance().DEBUG_NONE);
     }
 
-    /**
-     * Constructor using user-supplied values for port number and debug flags.
-     * @param port Port number of connection
-     * @param debugFlags debug flags used for diagnostic information
-     */
     public GenericSocket(int port, int debugFlags) {
         super(debugFlags);
         this.port = port;

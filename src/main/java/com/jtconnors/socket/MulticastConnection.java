@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, Jim Connors
+ * Copyright (c) 2016, Jim Connors
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,13 +39,12 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Provides the framework for a multicast socket reader. When an
+ * This class provides the framework for a multicast socket reader. When an
  * update message is to be posted, it is broadcast over the multicast socket
  * such that all connected clients will receive the message.
- * <br><br>
- * This class is abstract and requires implementation of the 
- * {@link com.jtconnors.socket.SocketListener#onMessage} and
- * {@link com.jtconnors.socket.SocketListener#onClosedStatus} methods.
+ *
+ * This class is abstract and requires implementation of the onMessage() and
+ * onClosedStatus() methods.
  */
 public abstract class MulticastConnection extends SocketBase implements
         SocketListener, Runnable {
@@ -102,7 +101,9 @@ public abstract class MulticastConnection extends SocketBase implements
             /*
              * Background thread to continuously read from the input stream.
              */
-            new ReaderThread().start();
+            Thread.ofVirtual()
+                    .name("multicast-connection-reader-", 0)
+                    .start(this::readSocket);
         } catch (IOException e) {
             if (debugFlagIsSet(DebugFlags.instance().DEBUG_EXCEPTIONS)) {
                 LOGGER.severe(GenericSocket.ExceptionStackTraceAsString(e));
@@ -116,47 +117,43 @@ public abstract class MulticastConnection extends SocketBase implements
      * packet when the onMessage() method (to be implemented by a subclass)
      * is called.
      */
-    class ReaderThread extends Thread {
-
-        @Override
-        public void run() {
-            try {
-                if (multicastSocket.isBound()) {
-                    /*
-                     * onClosedStatus() method to be implemented by a
-                     * sublclass.
-                     */
-                    onClosedStatus(false);
-                } else {
-                    throw new Exception("ReaderThread socket not bound");
-                }
-                byte[] readBuf = new byte[Constants.instance().MAX_DATAGRAM_MSG_SIZE];
-                DatagramPacket readPacket = new DatagramPacket(readBuf,
-                        readBuf.length);
+    private void readSocket() {
+        try {
+            if (multicastSocket.isBound()) {
                 /*
-                 * Read one DatagramPacket at a time from MulticastSocket
-                 * instance, The receive() method below will block until
-                 * a datagram is recieved.
+                 * onClosedStatus() method to be implemented by a
+                 * sublclass.
                  */
-                while (true) {
-                    multicastSocket.receive(readPacket);
-                    String msg = new String(readPacket.getData(),
-                            0, readPacket.getLength());
-                    if (debugFlagIsSet(DebugFlags.instance().DEBUG_RECV)) {
-                        LOGGER.log(Level.INFO, "recv> {0}", msg);
-                    }
-                    /*
-                     * onMessage() method to be implemented by a sublclass.
-                     */
-                    onMessage(msg);
-                }
-            } catch (Exception e) {
-                if (debugFlagIsSet(DebugFlags.instance().DEBUG_EXCEPTIONS)) {
-                    LOGGER.severe(GenericSocket.ExceptionStackTraceAsString(e));
-                }
-            } finally {
-                close();
+                onClosedStatus(false);
+            } else {
+                throw new Exception("ReaderThread socket not bound");
             }
+            byte[] readBuf = new byte[Constants.instance().MAX_DATAGRAM_MSG_SIZE];
+            DatagramPacket readPacket = new DatagramPacket(readBuf,
+                    readBuf.length);
+            /*
+             * Read one DatagramPacket at a time from MulticastSocket
+             * instance, The receive() method below will block until
+             * a datagram is recieved.
+             */
+            while (true) {
+                multicastSocket.receive(readPacket);
+                String msg = new String(readPacket.getData(),
+                        0, readPacket.getLength());
+                if (debugFlagIsSet(DebugFlags.instance().DEBUG_RECV)) {
+                    LOGGER.log(Level.INFO, "recv> {0}", msg);
+                }
+                /*
+                 * onMessage() method to be implemented by a sublclass.
+                 */
+                onMessage(msg);
+            }
+        } catch (Exception e) {
+            if (debugFlagIsSet(DebugFlags.instance().DEBUG_EXCEPTIONS)) {
+                LOGGER.severe(GenericSocket.ExceptionStackTraceAsString(e));
+            }
+        } finally {
+            close();
         }
     }
 
@@ -192,47 +189,25 @@ public abstract class MulticastConnection extends SocketBase implements
         }
     }
 
-    /**
-     * Starts the connection
-     */
     @Override
     public void run() {
         connect();
     }
 
-    /**
-     * MulticastConnection constructor using the following default values:
-     * <ul><li>{@link com.jtconnors.socket.Constants#DEFAULT_SESSION_ADDR}, </li>
-     * <li>{@link com.jtconnors.socket.Constants#DEFAULT_PORT}, </li>
-     * <li>{@link com.jtconnors.socket.DebugFlags#DEBUG_NONE}</li></ul>
-     */
     public MulticastConnection() {
         this(Constants.instance().DEFAULT_SESSION_ADDR,
                 Constants.instance().DEFAULT_PORT,
                 DebugFlags.instance().DEBUG_NONE);
     }
 
-    /**
-     * MulticastConnection constructor using the following default values.
-     * <ul><li>{@link com.jtconnors.socket.Constants#DEFAULT_SESSION_ADDR}</li>
-     * <li>{@link com.jtconnors.socket.DebugFlags#DEBUG_NONE}</li></ul>
-     * and a user-specified port number
-     * @param portNum port number to initiate connection
-     */
     public MulticastConnection(int portNum) {
         this(Constants.instance().DEFAULT_SESSION_ADDR,
                 portNum, DebugFlags.instance().DEBUG_NONE);
     }
 
-    /**
-     * MulticastConnection constructor using all user-supplied values.
-     * @param addr IP address or host name of connection
-     * @param portNum Port number of connection
-     * @param debugFlags debug flags used for diagnostic information
-     */
     public MulticastConnection(String addr, int portNum, int debugFlags) {
         this.addr = addr;
         this.portNum = portNum;
-        this.setDebugFlags(debugFlags);
+        this.setDebugFlags(DebugFlags.instance().DEBUG_NONE);
     }
 }
