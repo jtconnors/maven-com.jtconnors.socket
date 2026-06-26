@@ -11,7 +11,7 @@
         <version>9</version>
     </parent>
     
-    <groupId>com.jtconnors</groupId>  
+    <groupId>com.jtconnors.socket</groupId>  
     <artifactId>com.jtconnors.socket</artifactId>
     <version>21.0.0</version>
     
