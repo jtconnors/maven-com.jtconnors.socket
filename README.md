@@ -44,6 +44,6 @@ Useful tags:
 
 Examples of applications which uses this ```com.jtconnors.socket```:
 
--```SocketClientFX``` (https://github.com/jtconnors/SocketClientFX)
--```SocketServerFX``` (https://github.com/jtconnors/SocketServerFX)
--```MultiSocketServerFX``` https://github.com/jtconnors/MultiSocketServerFX
+- ```SocketClientFX``` (https://github.com/jtconnors/SocketClientFX)
+- ```SocketServerFX``` (https://github.com/jtconnors/SocketServerFX)
+- ```MultiSocketServerFX``` https://github.com/jtconnors/MultiSocketServerFX
